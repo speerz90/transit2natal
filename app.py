@@ -7,7 +7,7 @@ import math
 app = Flask(__name__, template_folder="templates")
 
 # ====================== SWISS EPHEMERIS ======================
-EPHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ephe")
+EPHE_DIR = os.path.join(os.path.dirname(__file__), "ephe")
 swe.set_ephe_path(os.path.abspath(EPHE_DIR))
 swe.set_sid_mode(swe.SIDM_LAHIRI)
 
@@ -72,9 +72,9 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
     if selected_planets is None:
         selected_planets = ["Mo", "Su", "Me", "Ve", "Ma"]
     moving_planets = selected_planets
-        
+
     natal_points = {k: v["longitude"] for k, v in natal_pos.items() if k != "For"}
-    
+
     # Build aspects_to_check from selected_aspects
     all_aspects = {
         "Conjunction": {0: "Conjunction"},
@@ -85,50 +85,50 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
     }
     if selected_aspects is None:
         selected_aspects = ["Conjunction", "Square", "Trine", "Opposition"]
-    
+
     aspects_to_check = {}
     for asp_name in selected_aspects:
         if asp_name in all_aspects:
             aspects_to_check.update(all_aspects[asp_name])
-    
+
     found_aspects = []
-    
+
     for h in range(hours):
         dt_1 = dt_transit_start + timedelta(hours=h)
         dt_2 = dt_transit_start + timedelta(hours=h+1)
-        
+
         pos_1, _ = get_positions(dt_1, transit_lat, transit_lon)
         pos_2, _ = get_positions(dt_2, transit_lat, transit_lon)
-        
+
         for tp in moving_planets:
             if tp not in pos_1 or tp not in pos_2:
                 continue
-            
+
             p1_lon = pos_1[tp]["longitude"]
             p2_lon = pos_2[tp]["longitude"]
-            
+
             # handle wrap-around
             if p2_lon < p1_lon and (p1_lon - p2_lon) > 180:
                 p2_lon += 360
             elif p1_lon < p2_lon and (p2_lon - p1_lon) > 180:
                 p1_lon += 360
-                
+
             for np, n_lon in natal_points.items():
                 d1 = p1_lon - n_lon
                 d2 = p2_lon - n_lon
-                
+
                 min_d = min(d1, d2)
                 max_d = max(d1, d2)
-                
+
                 k_start = int(min_d // 360)
-                
+
                 for k in (k_start, k_start + 1):
                     for asp_deg, asp_name in aspects_to_check.items():
                         target = asp_deg + k * 360
                         if min_d <= target <= max_d:
                             actual_fraction = abs(target - d1) / abs(d2 - d1) if d1 != d2 else 0
                             exact_dt = dt_1 + timedelta(hours=actual_fraction)
-                            
+
                             found_aspects.append({
                                 "time": exact_dt.isoformat() + "Z",
                                 "transit_planet": tp,
@@ -136,7 +136,7 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
                                 "aspect_deg": min(asp_deg, 360 - asp_deg),
                                 "aspect_name": asp_name
                             })
-                            
+
     found_aspects.sort(key=lambda x: x["time"])
     return found_aspects
 
@@ -407,10 +407,10 @@ def compute():
             dt_transit_local = datetime.fromisoformat(f"{transit_date}T{transit_time}:00")
             dt_transit = dt_transit_local - timedelta(hours=utc_offset)
             transit_pos, _ = get_positions(dt_transit, transit_lat, transit_lon)
-            
+
             # Compute aspects
             aspects_48h = compute_aspects(
-                dt_transit, transit_lat, transit_lon, natal_pos, 
+                dt_transit, transit_lat, transit_lon, natal_pos,
                 hours=aspect_hours, selected_planets=selected_planets,
                 selected_aspects=data.get('selectedAspects', None)
             )
