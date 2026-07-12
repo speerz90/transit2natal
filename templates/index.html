@@ -66,8 +66,8 @@
     }
 
     .controls-panel {
-      flex: 0 0 420px;
-      max-width: 420px;
+      flex: 0 0 560px;
+      max-width: 560px;
     }
 
     .chart-panel {
@@ -171,9 +171,9 @@
       gap: 14px;
     }
 
-    .form-grid-4 { grid-template-columns: repeat(4, 1fr); }
-    .form-grid-3 { grid-template-columns: repeat(3, 1fr); }
-    .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .form-grid-4 { grid-template-columns: repeat(4, minmax(112px, 1fr)); }
+    .form-grid-3 { grid-template-columns: repeat(3, minmax(112px, 1fr)); }
+    .form-grid-2 { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
 
     label {
       display: block;
@@ -188,8 +188,10 @@
     input[type="date"],
     input[type="time"],
     input[type="number"],
-    input[type="text"] {
+    input[type="text"],
+    select {
       width: 100%;
+      min-width: 0;
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text-bright);
@@ -254,6 +256,29 @@
       border-color: var(--accent);
     }
 
+    .view-toggle-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+
+    .view-toggle {
+      min-width: 150px;
+    }
+
+    .adjust-row {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) auto;
+      align-items: end;
+      gap: 10px;
+    }
+
+    .adjust-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
     /* ============================================================
        INPUT PANEL
        ============================================================ */
@@ -264,10 +289,10 @@
       margin-bottom: 16px;
     }
 
-    .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
-    .form-grid-3 { grid-template-columns: repeat(3, 1fr); }
-    .form-grid-4 { grid-template-columns: repeat(4, 1fr); }
-    .form-grid-5 { grid-template-columns: repeat(5, 1fr); }
+    .form-grid-2 { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+    .form-grid-3 { grid-template-columns: repeat(3, minmax(112px, 1fr)); }
+    .form-grid-4 { grid-template-columns: repeat(4, minmax(112px, 1fr)); }
+    .form-grid-5 { grid-template-columns: repeat(3, minmax(112px, 1fr)); }
 
     .actions-row {
       display: flex;
@@ -289,7 +314,7 @@
 
     .chart-wrapper {
       position: relative;
-      width: 600px;
+      width: min(760px, 100%);
       max-width: 100%;
     }
 
@@ -524,7 +549,7 @@
     }
 
     .transit-only-grid {
-      width: min(100%, 420px);
+      width: min(100%, 620px);
     }
 
     .transit-only-grid .si-chart {
@@ -634,16 +659,67 @@
        RESPONSIVE
        ============================================================ */
     @media (max-width: 900px) {
+      .main-layout {
+        flex-direction: column;
+      }
+
+      .controls-panel {
+        flex: 1 1 auto;
+        max-width: 100%;
+        width: 100%;
+      }
+
       .input-panel { grid-template-columns: 1fr; }
       .chart-container { flex-direction: column; align-items: center; }
       .legend-panel { width: 100%; }
       .planet-tables-grid { grid-template-columns: 1fr; }
-      .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .form-grid-4 { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+      .form-grid-5 { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
     }
 
     @media (max-width: 480px) {
       .form-grid-4 { grid-template-columns: 1fr; }
       .form-grid-3 { grid-template-columns: 1fr; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .form-grid-5 { grid-template-columns: 1fr; }
+    }
+
+    body.mobile-view .main-layout {
+      flex-direction: column;
+      max-width: 430px;
+      margin: 0 auto;
+    }
+
+    body.mobile-view .controls-panel,
+    body.mobile-view .chart-panel {
+      flex: 1 1 auto;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    body.mobile-view .form-grid-2,
+    body.mobile-view .form-grid-3,
+    body.mobile-view .form-grid-4,
+    body.mobile-view .form-grid-5 {
+      grid-template-columns: 1fr;
+    }
+
+    body.mobile-view .card {
+      padding: 18px;
+    }
+
+    body.mobile-view .adjust-row {
+      grid-template-columns: 1fr;
+    }
+
+    body.mobile-view .adjust-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    body.mobile-view .chart-wrapper,
+    body.mobile-view .transit-only-grid {
+      width: 100%;
     }
 
     /* ============================================================
@@ -669,6 +745,9 @@
 
     <div class="main-layout">
       <div class="controls-panel">
+        <div class="view-toggle-row">
+          <button class="btn-now view-toggle" type="button" id="view-toggle" onclick="toggleViewMode()">Mobile View</button>
+        </div>
 
     <!-- ============================================================
          INPUT PANEL
@@ -686,7 +765,7 @@
             <label>Time of Birth</label>
             <input type="time" id="natal-time" value="17:35" step="60">
           </div>
-          <div class="form-grid form-grid-5" style="margin-top: 16px;">
+          <div class="form-grid form-grid-5" style="margin-top: 16px; grid-column: 1 / -1;">
             <div>
               <label>Latitude</label>
               <input type="number" id="natal-lat" step="0.0001" value="18.5204" required>
@@ -700,7 +779,7 @@
               <input type="number" id="natal-utc" step="0.5" value="5.5" required>
             </div>
           </div>
-          <div>
+          <div style="grid-column: 1 / -1;">
             <label>Place</label>
             <input type="text" id="place" value="Pune, India" placeholder="City, Country">
           </div>
@@ -728,7 +807,7 @@
             <input type="number" id="transit-lon" step="0.0001" value="73.8567" required>
           </div>
         </div>
-        <div style="margin-top: 14px; display: flex; align-items: flex-end; gap: 8px;">
+        <div class="adjust-row">
           <div style="flex: 1;">
             <label>Time Adjustment Step</label>
             <select id="time-step" style="width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text-bright); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
@@ -740,7 +819,7 @@
               <option value="1440">24 Hours (1d)</option>
             </select>
           </div>
-          <div style="display: flex; gap: 6px;">
+          <div class="adjust-buttons">
             <button class="btn-now" style="padding: 10px 16px; font-size: 14px;" onclick="adjustTransitTime(-1)">◀ Decrease</button>
             <button class="btn-now" style="padding: 10px 16px; font-size: 14px;" onclick="adjustTransitTime(1)">Increase ▶</button>
           </div>
@@ -801,7 +880,7 @@
               <input type="checkbox" class="transit-planet-cb" value="Pl" checked style="width: auto;"> Pl
             </label>
             <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0; margin-left: 6px; color: var(--asc-color);">
-              <input type="checkbox" class="transit-planet-cb" value="As" style="width: auto;"> As
+              <input type="checkbox" class="transit-planet-cb" value="As" checked style="width: auto;"> As
             </label>
           </div>
         </div>
@@ -907,8 +986,58 @@
       computeChart();
     }
 
+    const NATAL_STORAGE_KEY = 'transit2natal:natalData';
+    const NATAL_FIELD_IDS = ['natal-date', 'natal-time', 'natal-lat', 'natal-lon', 'natal-utc', 'place'];
+
+    function loadSavedNatalData() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(NATAL_STORAGE_KEY) || '{}');
+        for (const id of NATAL_FIELD_IDS) {
+          if (saved[id] !== undefined && saved[id] !== null && saved[id] !== '') {
+            const el = document.getElementById(id);
+            if (el) el.value = saved[id];
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load saved natal data:', e);
+      }
+    }
+
+    function saveNatalData() {
+      const natalData = {};
+      for (const id of NATAL_FIELD_IDS) {
+        const el = document.getElementById(id);
+        if (el) natalData[id] = el.value;
+      }
+      localStorage.setItem(NATAL_STORAGE_KEY, JSON.stringify(natalData));
+    }
+
+    function bindNatalDataSaving() {
+      for (const id of NATAL_FIELD_IDS) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', saveNatalData);
+      }
+    }
+
+    const VIEW_MODE_STORAGE_KEY = 'transit2natal:viewMode';
+
+    function applyViewMode(mode) {
+      const isMobile = mode === 'mobile';
+      document.body.classList.toggle('mobile-view', isMobile);
+      const toggle = document.getElementById('view-toggle');
+      if (toggle) toggle.textContent = isMobile ? 'Laptop View' : 'Mobile View';
+      localStorage.setItem(VIEW_MODE_STORAGE_KEY, isMobile ? 'mobile' : 'laptop');
+    }
+
+    function toggleViewMode() {
+      applyViewMode(document.body.classList.contains('mobile-view') ? 'laptop' : 'mobile');
+    }
+
     // Set transit date to today on load
     window.addEventListener('DOMContentLoaded', () => {
+      loadSavedNatalData();
+      bindNatalDataSaving();
+      applyViewMode(localStorage.getItem(VIEW_MODE_STORAGE_KEY) || 'laptop');
       setNow();
     });
 
@@ -941,6 +1070,7 @@
         return;
       }
 
+      saveNatalData();
       setStatus('Computing chart...', true);
 
       try {

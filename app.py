@@ -157,6 +157,33 @@ def normalize_delta(delta):
     return (delta + 180) % 360 - 180
 
 
+def is_excluded_transit_aspect(planet_a, planet_b, aspect_deg):
+    return {planet_a, planet_b} == {"Ra", "Ke"} and aspect_deg == 180
+
+
+TRANSIT_ASPECT_DISPLAY_ORDER = {
+    "As": 0,
+    "Mo": 1,
+    "Me": 2,
+    "Ve": 3,
+    "Su": 4,
+    "Ma": 5,
+    "Ju": 6,
+    "Sa": 7,
+    "Ra": 8,
+    "Ke": 9,
+    "Ur": 10,
+    "Ne": 11,
+    "Pl": 12,
+}
+
+
+def order_transit_aspect_pair(planet_a, planet_b):
+    if TRANSIT_ASPECT_DISPLAY_ORDER.get(planet_b, 99) < TRANSIT_ASPECT_DISPLAY_ORDER.get(planet_a, 99):
+        return planet_b, planet_a
+    return planet_a, planet_b
+
+
 def compute_transit_aspects(dt_transit_start, transit_lat, transit_lon, hours=48, selected_planets=None, selected_aspects=None, current_orb=3.0):
     if selected_planets is None:
         selected_planets = ["Mo", "Su", "Me", "Ve", "Ma"]
@@ -192,14 +219,17 @@ def compute_transit_aspects(dt_transit_start, transit_lat, transit_lon, hours=48
 
             sep_now = angular_separation(current_pos[tp]["longitude"], current_pos[other]["longitude"])
             for aspect_deg, aspect_name in exact_aspects.items():
+                if is_excluded_transit_aspect(tp, other, aspect_deg):
+                    continue
                 orb = abs(sep_now - aspect_deg)
                 if orb <= current_orb:
                     dedupe_key = ("current", tp, other, aspect_deg)
                     seen.add(dedupe_key)
+                    display_tp, display_other = order_transit_aspect_pair(tp, other)
                     found_aspects.append({
                         "time": dt_transit_start.isoformat() + "Z",
-                        "transit_planet": tp,
-                        "other_transit_planet": other,
+                        "transit_planet": display_tp,
+                        "other_transit_planet": display_other,
                         "aspect_deg": aspect_deg,
                         "aspect_name": aspect_name,
                         "orb": round(orb, 2),
@@ -251,20 +281,23 @@ def compute_transit_aspects(dt_transit_start, transit_lat, transit_lon, hours=48
 
                 for k in (k_start - 1, k_start, k_start + 1):
                     for asp_deg, asp_name in aspects_to_check.items():
+                        aspect_deg = min(asp_deg, 360 - asp_deg)
+                        if is_excluded_transit_aspect(tp, other, aspect_deg):
+                            continue
                         target = asp_deg + k * 360
                         if min_d <= target <= max_d:
                             actual_fraction = abs(target - d1) / abs(d2 - d1) if d1 != d2 else 0
                             exact_dt = dt_1 + timedelta(hours=actual_fraction)
-                            aspect_deg = min(asp_deg, 360 - asp_deg)
                             dedupe_key = (exact_dt.replace(second=0, microsecond=0).isoformat(), tp, other, aspect_deg)
                             if dedupe_key in seen:
                                 continue
                             seen.add(dedupe_key)
+                            display_tp, display_other = order_transit_aspect_pair(tp, other)
 
                             found_aspects.append({
                                 "time": exact_dt.isoformat() + "Z",
-                                "transit_planet": tp,
-                                "other_transit_planet": other,
+                                "transit_planet": display_tp,
+                                "other_transit_planet": display_other,
                                 "aspect_deg": aspect_deg,
                                 "aspect_name": asp_name,
                                 "orb": 0,
