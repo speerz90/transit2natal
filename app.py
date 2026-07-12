@@ -14,7 +14,7 @@ swe.set_sid_mode(swe.SIDM_LAHIRI)
 SIGNS = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"]
 SIGN_FULL = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
              "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-LONGITUDE_OFFSET_DEG = 1.0
+LONGITUDE_OFFSET_DEG = 0.0
 
 # Planet IDs — includes outer planets
 PLANETS = {
