@@ -1,3 +1,4 @@
 Flask
 pyswisseph
 gunicorn
+openpyxl

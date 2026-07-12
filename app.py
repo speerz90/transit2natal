@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import swisseph as swe
+import openpyxl
 import os
 from datetime import datetime, timedelta
 import math
@@ -14,7 +15,10 @@ swe.set_sid_mode(swe.SIDM_LAHIRI)
 SIGNS = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"]
 SIGN_FULL = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
              "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+
 LONGITUDE_OFFSET_DEG = 0.0
+
+INTERPRETATION_FILE = os.path.join(os.path.dirname(__file__), "Tablet2n.xlsx")
 
 # Planet IDs — includes outer planets
 PLANETS = {
@@ -73,7 +77,7 @@ def apply_longitude_offset(longitude):
     return (longitude + LONGITUDE_OFFSET_DEG) % 360
 
 
-def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours=48, selected_planets=None, selected_aspects=None):
+def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours=48, selected_planets=None, selected_aspects=None, current_orb=3.0):
     if selected_planets is None:
         selected_planets = ["Mo", "Su", "Me", "Ve", "Ma"]
     moving_planets = selected_planets
@@ -91,11 +95,40 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
         selected_aspects = ["Conjunction", "Square", "Trine", "Opposition"]
 
     aspects_to_check = {}
+    exact_aspects = {}
     for asp_name in selected_aspects:
         if asp_name in all_aspects:
             aspects_to_check.update(all_aspects[asp_name])
+            for asp_deg in all_aspects[asp_name]:
+                exact_aspects[min(asp_deg, 360 - asp_deg)] = asp_name
 
     found_aspects = []
+
+    current_pos, _ = get_positions(dt_transit_start, transit_lat, transit_lon)
+    next_pos, _ = get_positions(dt_transit_start + timedelta(hours=1), transit_lat, transit_lon)
+    for tp in moving_planets:
+        if tp not in current_pos or tp not in next_pos:
+            continue
+
+        for np, n_lon in natal_points.items():
+            sep_now = angular_separation(current_pos[tp]["longitude"], n_lon)
+            sep_next = angular_separation(next_pos[tp]["longitude"], n_lon)
+
+            for aspect_deg, aspect_name in exact_aspects.items():
+                orb_now = abs(sep_now - aspect_deg)
+                orb_next = abs(sep_next - aspect_deg)
+                if 0 < orb_now <= current_orb and orb_next >= orb_now:
+                    found_aspects.append({
+                        "time": dt_transit_start.isoformat() + "Z",
+                        "transit_planet": tp,
+                        "natal_planet": np,
+                        "aspect_deg": aspect_deg,
+                        "aspect_name": aspect_name,
+                        "orb": round(orb_now, 2),
+                        "timing": "Previous within 3°",
+                        "is_previous": True,
+                        "interpretation": get_transit_natal_interpretation(tp, np)
+                    })
 
     for h in range(hours):
         dt_1 = dt_transit_start + timedelta(hours=h)
@@ -138,10 +171,14 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
                                 "transit_planet": tp,
                                 "natal_planet": np,
                                 "aspect_deg": min(asp_deg, 360 - asp_deg),
-                                "aspect_name": asp_name
+                                "aspect_name": asp_name,
+                                "orb": 0,
+                                "timing": "Exact upcoming",
+                                "is_previous": False,
+                                "interpretation": get_transit_natal_interpretation(tp, np)
                             })
 
-    found_aspects.sort(key=lambda x: x["time"])
+    found_aspects.sort(key=lambda x: (not x.get("is_previous", False), x["time"], x["transit_planet"], x["natal_planet"]))
     return found_aspects
 
 
@@ -180,6 +217,68 @@ TRANSIT_ASPECT_DISPLAY_ORDER = {
     "Ne": 11,
     "Pl": 12,
 }
+
+INTERPRETATION_PLANET_NAMES = {
+    "Su": "Sun",
+    "Mo": "Moon",
+    "Ma": "Mars",
+    "Me": "Mercury",
+    "Ju": "Jupiter",
+    "Ve": "Venus",
+    "Sa": "Saturn",
+    "Ra": "N Node",
+    "Ke": "S Node",
+}
+
+
+def load_transit_natal_interpretations():
+    if not os.path.exists(INTERPRETATION_FILE):
+        return {}
+
+    workbook = openpyxl.load_workbook(INTERPRETATION_FILE, data_only=True, read_only=True)
+    sheet = workbook[workbook.sheetnames[0]]
+    headers = [cell.value for cell in next(sheet.iter_rows(min_row=1, max_row=1))]
+    interpretations = {}
+
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        transit_name = row[0]
+        if not transit_name:
+            continue
+        for col_idx, interpretation in enumerate(row[1:], start=1):
+            natal_name = headers[col_idx] if col_idx < len(headers) else None
+            if natal_name and interpretation:
+                interpretations[(str(transit_name).strip(), str(natal_name).strip())] = str(interpretation).strip()
+
+    workbook.close()
+    return interpretations
+
+
+TRANSIT_NATAL_INTERPRETATION_CACHE = {
+    "mtime": None,
+    "data": {},
+}
+
+
+def get_transit_natal_interpretations():
+    if not os.path.exists(INTERPRETATION_FILE):
+        TRANSIT_NATAL_INTERPRETATION_CACHE["mtime"] = None
+        TRANSIT_NATAL_INTERPRETATION_CACHE["data"] = {}
+        return {}
+
+    mtime = os.path.getmtime(INTERPRETATION_FILE)
+    if TRANSIT_NATAL_INTERPRETATION_CACHE["mtime"] != mtime:
+        TRANSIT_NATAL_INTERPRETATION_CACHE["mtime"] = mtime
+        TRANSIT_NATAL_INTERPRETATION_CACHE["data"] = load_transit_natal_interpretations()
+
+    return TRANSIT_NATAL_INTERPRETATION_CACHE["data"]
+
+
+def get_transit_natal_interpretation(transit_planet, natal_planet):
+    transit_name = INTERPRETATION_PLANET_NAMES.get(transit_planet)
+    natal_name = INTERPRETATION_PLANET_NAMES.get(natal_planet)
+    if not transit_name or not natal_name:
+        return ""
+    return get_transit_natal_interpretations().get((transit_name, natal_name), "")
 
 
 def order_transit_aspect_pair(planet_a, planet_b):
@@ -412,8 +511,8 @@ def compute():
     data = request.get_json()
 
     # Natal data
-    dob = data.get('dob', '1990-01-22')
-    tob = data.get('tob', '17:35')
+    dob = data.get('dob', '1900-01-01')
+    tob = data.get('tob', '11:11')
     utc_offset = float(data.get('utcOffset', 5.5))
     lat = float(data.get('lat', 18.52))
     lon = float(data.get('lon', 73.86))

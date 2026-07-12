@@ -425,6 +425,7 @@
       border: 2px solid var(--border-light);
       background: var(--surface);
       overflow: hidden;
+      position: relative;
     }
 
     .si-inner-cell {
@@ -517,6 +518,33 @@
       font-size: clamp(8px, 1vw, 11px);
     }
 
+    .center-adjust-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      position: absolute;
+      top: 25%;
+      left: 25%;
+      width: 50%;
+      height: 50%;
+      padding: 12px;
+      place-content: center;
+      align-items: center;
+      justify-items: center;
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    .center-adjust-controls .btn-now {
+      min-width: 0;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+      pointer-events: auto;
+    }
+
     /* ============================================================
        LEGEND
        ============================================================ */
@@ -603,6 +631,15 @@
       padding: 7px 10px;
       border-bottom: 1px solid var(--border);
       color: var(--text);
+    }
+
+    .interpretation-cell {
+      min-width: 320px;
+      max-width: 520px;
+      white-space: pre-line;
+      line-height: 1.45;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
     }
 
     .planet-table tbody tr:hover td {
@@ -771,11 +808,11 @@
         <div class="form-grid form-grid-2">
           <div>
             <label>Date of Birth</label>
-            <input type="date" id="natal-date" value="1990-01-22">
+            <input type="date" id="natal-date" value="1900-01-01">
           </div>
           <div>
             <label>Time of Birth</label>
-            <input type="time" id="natal-time" value="17:35" step="60">
+            <input type="time" id="natal-time" value="11:11" step="60">
           </div>
           <div class="form-grid form-grid-5" style="margin-top: 16px; grid-column: 1 / -1;">
             <div>
@@ -843,10 +880,6 @@
               <option value="259200">6 Months</option>
               <option value="518400">1 Year</option>
             </select>
-          </div>
-          <div class="adjust-buttons">
-            <button class="btn-now" style="padding: 10px 16px; font-size: 14px;" onclick="adjustTransitTime(-1)">◀ Decrease</button>
-            <button class="btn-now" style="padding: 10px 16px; font-size: 14px;" onclick="adjustTransitTime(1)">Increase ▶</button>
           </div>
         </div>
         <div class="form-grid form-grid-2" style="margin-top: 14px;">
@@ -1509,7 +1542,6 @@
       for (let i = 0; i < 16; i++) {
         const signIdx = SI_LAYOUT[i];
         if (signIdx === -1) {
-          // Center cell
           innerCells += `<div class="si-inner-cell center-cell"></div>`;
           continue;
         }
@@ -1598,11 +1630,15 @@
               <div class="si-chart">
                 ${outerCells}
               </div>
-              <div class="inner-chart-container">
-                <div class="si-inner-chart">
-                  ${innerCells}
+            <div class="inner-chart-container">
+              <div class="si-inner-chart">
+                ${innerCells}
+                <div class="center-adjust-controls">
+                  <button class="btn-now" type="button" onclick="adjustTransitTime(-1)" title="Decrease transit time">◀</button>
+                  <button class="btn-now" type="button" onclick="adjustTransitTime(1)" title="Increase transit time">▶</button>
                 </div>
               </div>
+            </div>
             </div>
           </div>
 
@@ -1612,18 +1648,22 @@
               <div class="card-title">Exact Aspects: Transit → Natal</div>
               <table class="planet-table">
                 <thead>
-                  <tr><th>Time (Local)</th><th>Transit Planet</th><th>Aspect</th><th>Natal Point</th></tr>
+                  <tr><th>Time (Local)</th><th>Transit Planet</th><th>Aspect</th><th>Natal Point</th><th>Orb</th><th>Interpretation</th><th>Note</th></tr>
                 </thead>
                 <tbody>
                   ${aspects.map(a => {
                     const localTime = new Date(a.time).toLocaleString(undefined, {
                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                     });
+                    const interpretation = a.interpretation ? escapeHtml(a.interpretation) : '';
                     return `<tr>
                       <td>${localTime}</td>
                       <td style="color: var(--transit-color); font-weight: 600;">${a.transit_planet}</td>
                       <td>${a.aspect_name} (${a.aspect_deg}°)</td>
                       <td style="color: var(--natal-color); font-weight: 600;">${a.natal_planet}</td>
+                      <td>${formatOrb(a.orb)}</td>
+                      <td class="interpretation-cell">${interpretation}</td>
+                      <td>${a.timing || ''}</td>
                     </tr>`;
                   }).join('')}
                 </tbody>
