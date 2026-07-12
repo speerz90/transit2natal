@@ -14,6 +14,7 @@ swe.set_sid_mode(swe.SIDM_LAHIRI)
 SIGNS = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"]
 SIGN_FULL = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
              "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+LONGITUDE_OFFSET_DEG = 1.0
 
 # Planet IDs — includes outer planets
 PLANETS = {
@@ -68,6 +69,10 @@ def compute_fortuna(asc_lon, sun_lon, moon_lon, is_day_chart):
     return fortuna % 360
 
 
+def apply_longitude_offset(longitude):
+    return (longitude + LONGITUDE_OFFSET_DEG) % 360
+
+
 def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours=48, selected_planets=None, selected_aspects=None):
     if selected_planets is None:
         selected_planets = ["Mo", "Su", "Me", "Ve", "Ma"]
@@ -78,7 +83,6 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
     # Build aspects_to_check from selected_aspects
     all_aspects = {
         "Conjunction": {0: "Conjunction"},
-        "Sextile": {60: "Sextile", 300: "Sextile"},
         "Square": {90: "Square", 270: "Square"},
         "Trine": {120: "Trine", 240: "Trine"},
         "Opposition": {180: "Opposition"},
@@ -190,7 +194,6 @@ def compute_transit_aspects(dt_transit_start, transit_lat, transit_lon, hours=48
 
     all_aspects = {
         "Conjunction": {0: "Conjunction"},
-        "Sextile": {60: "Sextile", 300: "Sextile"},
         "Square": {90: "Square", 270: "Square"},
         "Trine": {120: "Trine", 240: "Trine"},
         "Opposition": {180: "Opposition"},
@@ -319,7 +322,7 @@ def get_positions(dt, lat=0.0, lon=0.0):
 
     for name, pid in PLANETS.items():
         result = swe.calc_ut(jd, pid, swe.FLG_SIDEREAL | swe.FLG_SPEED)
-        longitude = (result[0][0] - (1.0 / 60.0)) % 360
+        longitude = apply_longitude_offset(result[0][0])
         sign_idx = int(longitude // 30) % 12
         deg_in_sign = longitude % 30
         retro = is_retrograde(jd, pid)
@@ -366,7 +369,7 @@ def get_positions(dt, lat=0.0, lon=0.0):
     asc_lon = None
     if lat != 0 or lon != 0:
         houses = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
-        asc_lon = (houses[1][0] - (1.0 / 60.0)) % 360  # Ascendant shifted
+        asc_lon = apply_longitude_offset(houses[1][0])
         asc_sign_idx = int(asc_lon // 30) % 12
         asc_deg = asc_lon % 30
         positions["As"] = {
@@ -383,7 +386,7 @@ def get_positions(dt, lat=0.0, lon=0.0):
         # House cusps (all 12)
         house_cusps = []
         for i in range(12):
-            h_lon = (houses[0][i] - (1.0 / 60.0)) % 360
+            h_lon = apply_longitude_offset(houses[0][i])
             h_sign_idx = int(h_lon // 30) % 12
             h_deg = h_lon % 30
             house_cusps.append({

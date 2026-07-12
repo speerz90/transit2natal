@@ -171,7 +171,7 @@
       gap: 14px;
     }
 
-    .form-grid-4 { grid-template-columns: repeat(4, minmax(112px, 1fr)); }
+    .form-grid-4 { grid-template-columns: repeat(2, minmax(170px, 1fr)); }
     .form-grid-3 { grid-template-columns: repeat(3, minmax(112px, 1fr)); }
     .form-grid-2 { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
 
@@ -279,6 +279,14 @@
       gap: 8px;
     }
 
+    .saved-chart-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto auto auto;
+      gap: 8px;
+      align-items: end;
+    }
+
     /* ============================================================
        INPUT PANEL
        ============================================================ */
@@ -291,7 +299,7 @@
 
     .form-grid-2 { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
     .form-grid-3 { grid-template-columns: repeat(3, minmax(112px, 1fr)); }
-    .form-grid-4 { grid-template-columns: repeat(4, minmax(112px, 1fr)); }
+    .form-grid-4 { grid-template-columns: repeat(2, minmax(170px, 1fr)); }
     .form-grid-5 { grid-template-columns: repeat(3, minmax(112px, 1fr)); }
 
     .actions-row {
@@ -399,7 +407,7 @@
        ============================================================ */
     .inner-chart-container {
       position: absolute;
-      /* Enlarge inner chart to 64% to make natal cells bigger. 
+      /* Enlarge inner chart to 64% to make natal cells bigger.
          Edge alignments on outer cells prevent overlap text cutoff */
       top: 18%;
       left: 18%;
@@ -717,6 +725,10 @@
       grid-template-columns: 1fr 1fr;
     }
 
+    body.mobile-view .saved-chart-row {
+      grid-template-columns: 1fr;
+    }
+
     body.mobile-view .chart-wrapper,
     body.mobile-view .transit-only-grid {
       width: 100%;
@@ -783,6 +795,15 @@
             <label>Place</label>
             <input type="text" id="place" value="Pune, India" placeholder="City, Country">
           </div>
+          <div class="saved-chart-row">
+            <div>
+              <label>Saved Natal Charts</label>
+              <select id="saved-natal-charts"></select>
+            </div>
+            <button class="btn-now" type="button" onclick="loadSelectedNatalChart()">Load</button>
+            <button class="btn-now" type="button" onclick="saveNamedNatalChart()">Save</button>
+            <button class="btn-now" type="button" onclick="deleteSelectedNatalChart()">Delete</button>
+          </div>
         </div>
       </div>
 
@@ -817,6 +838,10 @@
               <option value="360">6 Hours</option>
               <option value="720">12 Hours</option>
               <option value="1440">24 Hours (1d)</option>
+              <option value="10080">7 Days (1w)</option>
+              <option value="43200">30 Days (1m)</option>
+              <option value="259200">6 Months</option>
+              <option value="518400">1 Year</option>
             </select>
           </div>
           <div class="adjust-buttons">
@@ -898,9 +923,6 @@
             </label>
             <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
               <input type="checkbox" class="aspect-type-cb" value="Opposition" checked style="width: auto;"> Opposition (180°)
-            </label>
-            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
-              <input type="checkbox" class="aspect-type-cb" value="Sextile" style="width: auto;"> Sextile (60°)
             </label>
           </div>
         </div>
@@ -987,6 +1009,7 @@
     }
 
     const NATAL_STORAGE_KEY = 'transit2natal:natalData';
+    const SAVED_NATAL_CHARTS_KEY = 'transit2natal:savedNatalCharts';
     const NATAL_FIELD_IDS = ['natal-date', 'natal-time', 'natal-lat', 'natal-lon', 'natal-utc', 'place'];
 
     function loadSavedNatalData() {
@@ -1012,11 +1035,124 @@
       localStorage.setItem(NATAL_STORAGE_KEY, JSON.stringify(natalData));
     }
 
+    function getNatalFormData() {
+      const natalData = {};
+      for (const id of NATAL_FIELD_IDS) {
+        const el = document.getElementById(id);
+        if (el) natalData[id] = el.value;
+      }
+      return natalData;
+    }
+
+    function setNatalFormData(natalData) {
+      for (const id of NATAL_FIELD_IDS) {
+        const el = document.getElementById(id);
+        if (el && natalData[id] !== undefined) el.value = natalData[id];
+      }
+      saveNatalData();
+    }
+
+    function loadSavedNatalCharts() {
+      try {
+        return JSON.parse(localStorage.getItem(SAVED_NATAL_CHARTS_KEY) || '[]');
+      } catch (e) {
+        console.warn('Could not load saved natal charts:', e);
+        return [];
+      }
+    }
+
+    function storeSavedNatalCharts(charts) {
+      localStorage.setItem(SAVED_NATAL_CHARTS_KEY, JSON.stringify(charts));
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renderSavedNatalCharts(selectedName = '') {
+      const select = document.getElementById('saved-natal-charts');
+      if (!select) return;
+
+      const charts = loadSavedNatalCharts();
+      select.innerHTML = '<option value="">Load saved chart</option>' + charts
+        .map(chart => `<option value="${escapeAttr(chart.id || chart.name)}">${escapeHtml(chart.name)}</option>`)
+        .join('');
+      select.value = selectedName;
+    }
+
+    function currentNatalChartName() {
+      const place = document.getElementById('place').value.trim();
+      const date = document.getElementById('natal-date').value;
+      const time = document.getElementById('natal-time').value;
+      return [place, date, time].filter(Boolean).join(' | ');
+    }
+
+    function natalChartId(natalData) {
+      return [
+        natalData.place,
+        natalData['natal-date'],
+        natalData['natal-time'],
+        natalData['natal-lat'],
+        natalData['natal-lon'],
+        natalData['natal-utc']
+      ].filter(Boolean).join('|');
+    }
+
+    function saveNamedNatalChart() {
+      const name = currentNatalChartName();
+      if (!name) {
+        setStatus('Enter natal chart details before saving.');
+        return;
+      }
+
+      const chartData = getNatalFormData();
+      const id = natalChartId(chartData);
+      const charts = loadSavedNatalCharts();
+      const existingIndex = charts.findIndex(chart => (chart.id || chart.name) === id);
+      const savedChart = { id, name, data: chartData, savedAt: new Date().toISOString() };
+      if (existingIndex >= 0) charts[existingIndex] = savedChart;
+      else charts.push(savedChart);
+
+      charts.sort((a, b) => a.name.localeCompare(b.name));
+      storeSavedNatalCharts(charts);
+      renderSavedNatalCharts(id);
+      saveNatalData();
+      setStatus(`Saved natal chart: ${name}`);
+    }
+
+    function loadSelectedNatalChart() {
+      const select = document.getElementById('saved-natal-charts');
+      if (!select || !select.value) return;
+
+      const chart = loadSavedNatalCharts().find(item => (item.id || item.name) === select.value);
+      if (!chart) return;
+      setNatalFormData(chart.data);
+      setStatus(`Loaded natal chart: ${chart.name}`);
+      computeChart();
+    }
+
+    function deleteSelectedNatalChart() {
+      const select = document.getElementById('saved-natal-charts');
+      if (!select || !select.value) {
+        setStatus('Select a saved natal chart to delete.');
+        return;
+      }
+
+      const deletedName = select.value;
+      const charts = loadSavedNatalCharts();
+      const deletedChart = charts.find(chart => (chart.id || chart.name) === deletedName);
+      const nextCharts = charts.filter(chart => (chart.id || chart.name) !== deletedName);
+      storeSavedNatalCharts(nextCharts);
+      renderSavedNatalCharts();
+      setStatus(`Deleted natal chart: ${deletedChart ? deletedChart.name : deletedName}`);
+    }
+
     function bindNatalDataSaving() {
       for (const id of NATAL_FIELD_IDS) {
         const el = document.getElementById(id);
         if (el) el.addEventListener('change', saveNatalData);
       }
+
     }
 
     const VIEW_MODE_STORAGE_KEY = 'transit2natal:viewMode';
@@ -1036,6 +1172,7 @@
     // Set transit date to today on load
     window.addEventListener('DOMContentLoaded', () => {
       loadSavedNatalData();
+      renderSavedNatalCharts();
       bindNatalDataSaving();
       applyViewMode(localStorage.getItem(VIEW_MODE_STORAGE_KEY) || 'laptop');
       setNow();
@@ -1136,7 +1273,7 @@
             const margin = alignRight ? 'margin-right: 4px;' : 'margin-left: 4px;';
             return `<div class="transit-aspect-line" style="font-size: 8px; color: var(--text-dim); opacity: 0.8; line-height: 1.1; ${margin} white-space: nowrap;">↳ ${a.natal_planet} ${a.aspect_name.slice(0,4)} ${dt}</div>`;
           }).join('');
-          
+
           if (planetAspects.length > 2) {
             const margin = alignRight ? 'margin-right: 4px;' : 'margin-left: 4px;';
             aspectLines += `<div style="font-size: 7px; color: var(--accent); ${margin} opacity: 0.7; white-space: nowrap;">+ ${planetAspects.length - 2} more</div>`;
@@ -1175,7 +1312,7 @@
      *   8  -  - 11      (left / right)
      *  12 13 14 15      (bottom row)
      */
-    const DESC_CELLS = new Set([4, 8, 12, 13, 14]); // left col (excl top corner) + bottom row (excl right corner)
+    const DESC_CELLS = new Set([0, 4, 8, 12, 13, 14]); // top-left + left col + bottom row
 
     function sortPlanets(planets, gridIndex) {
       const copy = [...planets];
@@ -1468,7 +1605,7 @@
               </div>
             </div>
           </div>
-          
+
           ${aspects && aspects.length > 0 ? `
           <div class="planet-table-wrap">
             <div class="card" style="margin-top: 20px;">
