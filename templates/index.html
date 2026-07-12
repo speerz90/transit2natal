@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transit to Natal — South Indian Chart</title>
+  <meta name="description" content="Vedic Astrology South Indian Chart — Inner Natal, Outer Transit with Sidereal positions">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       CSS DESIGN SYSTEM — Dark Astro Theme
+       ============================================================ */
+    :root {
+      --bg: #1a2332;
+      --bg-deep: #111a27;
+      --surface: #1e2b3d;
+      --surface-2: #243347;
+      --surface-3: #2a3b52;
+      --border: #2e4057;
+      --border-light: #3a5068;
+      --border-glow: rgba(100, 180, 220, 0.25);
+      --accent: #64b4dc;
+      --accent-dim: #4a98bc;
+      --accent-glow: rgba(100, 180, 220, 0.12);
+      --transit-color: #5bc0de;
+      --natal-color: #c8d6e0;
+      --text: #d4dfe8;
+      --text-bright: #e8f0f5;
+      --text-dim: #8a9eb4;
+      --text-muted: #5a6e82;
+      --sign-header: #4a98bc;
+      --retro-color: #e8a44a;
+      --combust-color: #e85a5a;
+      --asc-color: #5be8c4;
+      --fortuna-color: #b88aff;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
+      --radius: 4px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .app-container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 16px 20px 60px;
+    }
+
+    .main-layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .controls-panel {
+      flex: 0 0 420px;
+      max-width: 420px;
+    }
+
+    .chart-panel {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    header::after {
+      content: '◈';
+      position: absolute;
+      bottom: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-deep);
+      padding: 0 14px;
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    .header-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.35em;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+
+    h1 {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      color: var(--text-bright);
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    h1 span { color: var(--accent); font-weight: 600; }
+
+    .header-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+      opacity: 0.3;
+    }
+
+    .card-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Form Controls */
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .form-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+    label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 5px;
+    }
+
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    /* Buttons */
+    button {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      border: none;
+      border-radius: var(--radius);
+      padding: 12px 24px;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+      color: var(--bg-deep);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(100, 180, 220, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border-light);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .btn-now {
+      background: var(--surface-3);
+      color: var(--accent);
+      border: 1px solid var(--border-light);
+      padding: 10px 16px;
+      font-size: 11px;
+    }
+
+    .btn-now:hover {
+      background: var(--accent-glow);
+      border-color: var(--accent);
+    }
+
+    /* ============================================================
+       INPUT PANEL
+       ============================================================ */
+    .input-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .form-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .form-grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+    .actions-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      align-items: center;
+    }
+
+    /* ============================================================
+       SOUTH INDIAN CHART — OUTER + INNER GRID
+       ============================================================ */
+    .chart-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 600px;
+      max-width: 100%;
+    }
+
+    /* The 4x4 outer grid */
+    .si-chart {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: 2px solid var(--border-light);
+      background: var(--bg-deep);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    /* Each outer cell */
+    .si-cell {
+      border: 1px solid var(--border);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+
+    .si-cell:hover {
+      background: rgba(100, 180, 220, 0.04);
+    }
+
+    .si-cell.align-right {
+      align-items: flex-end;
+    }
+
+    .si-cell.align-bottom {
+      justify-content: flex-end;
+    }
+
+    /* Sign label in outer cells */
+    .si-cell .sign-label {
+      display: none;
+    }
+
+    /* Transit planets in outer cells */
+    .transit-planet {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(9.5px, 1.2vw, 13px);
+      font-weight: 500;
+      color: var(--text-bright);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .transit-planet.retro {
+      color: var(--retro-color);
+    }
+
+    .transit-planet.combust {
+      color: var(--combust-color);
+    }
+
+    .transit-planet.is-asc {
+      color: var(--asc-color);
+    }
+
+    .transit-planet.is-moon {
+      color: var(--transit-color);
+    }
+
+    /* Center 2x2 area is empty for outer grid — inner chart overlays */
+    .si-cell.center-cell {
+      border: none;
+      background: transparent;
+      padding: 0;
+    }
+
+    /* ============================================================
+       INNER CHART (Natal) — positioned over center
+       ============================================================ */
+    .inner-chart-container {
+      position: absolute;
+      /* Enlarge inner chart to 64% to make natal cells bigger. 
+         Edge alignments on outer cells prevent overlap text cutoff */
+      top: 18%;
+      left: 18%;
+      width: 64%;
+      height: 64%;
+      z-index: 5;
+    }
+
+    .si-inner-chart {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      width: 100%;
+      height: 100%;
+      border: 2px solid var(--border-light);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .si-inner-cell {
+      border: 1px solid var(--border);
+      padding: 2px 3px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--surface);
+      transition: background 0.2s;
+    }
+
+    .si-inner-cell:hover {
+      background: var(--surface-2);
+    }
+
+    .si-inner-cell.center-cell {
+      border: none;
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Sign number label in inner cells */
+    .inner-sign-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(7.5px, 0.9vw, 9.5px);
+      color: var(--sign-header);
+      font-weight: 600;
+      white-space: nowrap;
+      margin-bottom: 1px;
+    }
+
+    /* House cusp label */
+    .inner-house-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(6px, 0.75vw, 8px);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Natal planets in inner cells */
+    .natal-planet {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(8.5px, 1vw, 11px);
+      font-weight: 500;
+      color: var(--natal-color);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .natal-planet.retro {
+      color: var(--retro-color);
+    }
+
+    .natal-planet.combust {
+      color: var(--combust-color);
+    }
+
+    .natal-planet.is-asc {
+      color: var(--asc-color);
+    }
+
+    .natal-planet.is-fortuna {
+      color: var(--fortuna-color);
+    }
+
+    /* Center label */
+    .center-label {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(9px, 1.1vw, 13px);
+      font-weight: 600;
+      color: var(--text-dim);
+      text-align: center;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      line-height: 1.4;
+    }
+
+    .center-label .natal-label {
+      color: var(--natal-color);
+      font-size: clamp(8px, 1vw, 11px);
+    }
+
+    .center-label .transit-label {
+      color: var(--transit-color);
+      font-size: clamp(8px, 1vw, 11px);
+    }
+
+    /* ============================================================
+       LEGEND
+       ============================================================ */
+    .legend-panel {
+      width: 260px;
+      flex-shrink: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ============================================================
+       PLANET LIST TABLE
+       ============================================================ */
+    .planet-table-wrap {
+      margin-top: 32px;
+    }
+
+
+    .transit-only-grid-wrap {
+      display: flex;
+      justify-content: center;
+    }
+
+    .transit-only-grid {
+      width: min(100%, 420px);
+    }
+
+    .transit-only-grid .si-chart {
+      box-shadow: var(--shadow-md);
+    }
+
+    .transit-aspect-line {
+      font-size: 8px;
+      color: var(--text-dim);
+      opacity: 0.85;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .planet-tables-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .planet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .planet-table thead th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .planet-table tbody td {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .planet-table tbody tr:hover td {
+      background: var(--surface-3);
+    }
+
+    .badge-retro {
+      display: inline-block;
+      padding: 1px 5px;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 3px;
+      background: rgba(232, 164, 74, 0.15);
+      color: var(--retro-color);
+      border: 1px solid rgba(232, 164, 74, 0.3);
+      margin-left: 4px;
+    }
+
+    .badge-combust {
+      display: inline-block;
+      padding: 1px 5px;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 3px;
+      background: rgba(232, 90, 90, 0.15);
+      color: var(--combust-color);
+      border: 1px solid rgba(232, 90, 90, 0.3);
+      margin-left: 4px;
+    }
+
+    /* ============================================================
+       STATUS
+       ============================================================ */
+    .status-bar {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.2s infinite;
+      display: none;
+    }
+
+    .status-dot.visible { display: block; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.7); }
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 900px) {
+      .input-panel { grid-template-columns: 1fr; }
+      .chart-container { flex-direction: column; align-items: center; }
+      .legend-panel { width: 100%; }
+      .planet-tables-grid { grid-template-columns: 1fr; }
+      .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .form-grid-4 { grid-template-columns: 1fr; }
+      .form-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       ANIMATION
+       ============================================================ */
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <header style="text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+      <div class="header-eyebrow">Vedic Astrology · Swiss Ephemeris · Lahiri Ayanamsa</div>
+      <h1 style="font-size: 28px;">Transit <span>⟶</span> Natal</h1>
+    </header>
+
+    <div class="main-layout">
+      <div class="controls-panel">
+
+    <!-- ============================================================
+         INPUT PANEL
+         ============================================================ -->
+    <div class="input-panel">
+      <!-- Natal Birth Details -->
+      <div class="card">
+        <div class="card-title">Natal Birth Details</div>
+        <div class="form-grid form-grid-2">
+          <div>
+            <label>Date of Birth</label>
+            <input type="date" id="natal-date" value="1990-01-22">
+          </div>
+          <div>
+            <label>Time of Birth</label>
+            <input type="time" id="natal-time" value="17:35" step="60">
+          </div>
+          <div class="form-grid form-grid-5" style="margin-top: 16px;">
+            <div>
+              <label>Latitude</label>
+              <input type="number" id="natal-lat" step="0.0001" value="18.5204" required>
+            </div>
+            <div>
+              <label>Longitude</label>
+              <input type="number" id="natal-lon" step="0.0001" value="73.8567" required>
+            </div>
+            <div>
+              <label>UTC Offset</label>
+              <input type="number" id="natal-utc" step="0.5" value="5.5" required>
+            </div>
+          </div>
+          <div>
+            <label>Place</label>
+            <input type="text" id="place" value="Pune, India" placeholder="City, Country">
+          </div>
+        </div>
+      </div>
+
+      <!-- Transit Date/Time -->
+      <div class="card">
+        <div class="card-title">Transit Date & Time</div>
+        <div class="form-grid form-grid-4">
+          <div>
+            <label>Date</label>
+            <input type="date" id="transit-date" required>
+          </div>
+          <div>
+            <label>Time</label>
+            <input type="time" id="transit-time" required>
+          </div>
+          <div>
+            <label>Latitude</label>
+            <input type="number" id="transit-lat" step="0.0001" value="18.5204" required>
+          </div>
+          <div>
+            <label>Longitude</label>
+            <input type="number" id="transit-lon" step="0.0001" value="73.8567" required>
+          </div>
+        </div>
+        <div style="margin-top: 14px; display: flex; align-items: flex-end; gap: 8px;">
+          <div style="flex: 1;">
+            <label>Time Adjustment Step</label>
+            <select id="time-step" style="width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text-bright); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+              <option value="1">1 Minute</option>
+              <option value="10">10 Minutes</option>
+              <option value="60" selected>1 Hour</option>
+              <option value="360">6 Hours</option>
+              <option value="720">12 Hours</option>
+              <option value="1440">24 Hours (1d)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-now" style="padding: 10px 16px; font-size: 14px;" onclick="adjustTransitTime(-1)">◀ Decrease</button>
+            <button class="btn-now" style="padding: 10px 16px; font-size: 14px;" onclick="adjustTransitTime(1)">Increase ▶</button>
+          </div>
+        </div>
+        <div class="form-grid form-grid-2" style="margin-top: 14px;">
+          <div>
+            <label>Aspect Search Window</label>
+            <select id="aspect-hours" style="width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text-bright); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+              <option value="24">24h</option>
+              <option value="48" selected>48h</option>
+              <option value="168">1 Week</option>
+              <option value="720">1 Month</option>
+              <option value="2160">3 Months</option>
+              <option value="4320">6 Months</option>
+              <option value="8760">1 Year</option>
+              <option value="17520">2 Years</option>
+              <option value="26280">3 Years</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top: 14px;">
+          <label>Transit Planets</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Su" checked style="width: auto;"> Su
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Mo" checked style="width: auto;"> Mo
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Me" checked style="width: auto;"> Me
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Ve" checked style="width: auto;"> Ve
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Ma" checked style="width: auto;"> Ma
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Ju" checked style="width: auto;"> Ju
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Sa" checked style="width: auto;"> Sa
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Ra" checked style="width: auto;"> Ra
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Ke" checked style="width: auto;"> Ke
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Ur" checked style="width: auto;"> Ur
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Ne" checked style="width: auto;"> Ne
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="transit-planet-cb" value="Pl" checked style="width: auto;"> Pl
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0; margin-left: 6px; color: var(--asc-color);">
+              <input type="checkbox" class="transit-planet-cb" value="As" style="width: auto;"> As
+            </label>
+          </div>
+        </div>
+        <div style="margin-top: 14px;">
+          <label>Aspect Types</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="aspect-type-cb" value="Conjunction" checked style="width: auto;"> Conjunction (0°)
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="aspect-type-cb" value="Square" checked style="width: auto;"> Square (90°)
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="aspect-type-cb" value="Trine" checked style="width: auto;"> Trine (120°)
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="aspect-type-cb" value="Opposition" checked style="width: auto;"> Opposition (180°)
+            </label>
+            <label style="display: flex; align-items: center; gap: 3px; cursor: pointer; text-transform: none; font-size: 11px; margin-bottom: 0;">
+              <input type="checkbox" class="aspect-type-cb" value="Sextile" style="width: auto;"> Sextile (60°)
+            </label>
+          </div>
+        </div>
+        <div style="margin-top: 14px; display: flex; gap: 10px; align-items: center;">
+          <button class="btn-now" onclick="setNow()">⟳ Now</button>
+          <button class="btn-primary" onclick="computeChart()" id="btn-compute">▶ Compute</button>
+        </div>
+      </div>
+    </div>
+
+      </div> <!-- end controls-panel -->
+
+      <div class="chart-panel">
+        <!-- Status -->
+        <div class="status-bar">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText"></span>
+        </div>
+
+        <!-- CHART OUTPUT -->
+        <div id="chart-output"></div>
+      </div> <!-- end chart-panel -->
+    </div> <!-- end main-layout -->
+
+  </div>
+
+  <script>
+    // ============================================================
+    //  SOUTH INDIAN CHART LAYOUT
+    //  Fixed sign order (Pisces top-left, going clockwise)
+    //  The outer ring = 12 cells of a 4×4 grid (center 4 cells excluded)
+    //  The inner ring = same 4×4 pattern inside the center 2×2
+    // ============================================================
+
+    // South Indian chart: fixed sign positions
+    const SI_LAYOUT = [
+      11, 0,  1,  2,   // row 0
+      10, -1, -1, 3,   // row 1 (-1 = center)
+      9,  -1, -1, 4,   // row 2
+      8,  7,  6,  5    // row 3
+    ];
+
+    const SIGN_ABBR = ["Ari","Tau","Gem","Can","Leo","Vir","Lib","Sco","Sag","Cap","Aqu","Pis"];
+    const SIGN_FULL = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+                       "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+
+    // Roman numerals for houses
+    const ROMAN = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+
+    function setNow() {
+      const now = new Date();
+      // Adjust for local timezone
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('transit-date').value = `${y}-${m}-${d}`;
+      document.getElementById('transit-time').value = `${hh}:${mm}`;
+    }
+
+    function adjustTransitTime(direction) {
+      const dateVal = document.getElementById('transit-date').value;
+      const timeVal = document.getElementById('transit-time').value;
+      if (!dateVal || !timeVal) return;
+
+      // Handle offset/parsing correctly
+      const dt = new Date(`${dateVal}T${timeVal}`);
+      if (isNaN(dt.getTime())) return;
+
+      const step = parseInt(document.getElementById('time-step').value);
+      dt.setMinutes(dt.getMinutes() + direction * step);
+
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, '0');
+      const d = String(dt.getDate()).padStart(2, '0');
+      const hh = String(dt.getHours()).padStart(2, '0');
+      const mm = String(dt.getMinutes()).padStart(2, '0');
+
+      document.getElementById('transit-date').value = `${y}-${m}-${d}`;
+      document.getElementById('transit-time').value = `${hh}:${mm}`;
+
+      computeChart();
+    }
+
+    // Set transit date to today on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setNow();
+    });
+
+    function setStatus(msg, loading = false) {
+      document.getElementById('statusText').textContent = msg;
+      document.getElementById('statusDot').classList.toggle('visible', loading);
+    }
+
+    async function computeChart() {
+      const selectedPlanets = Array.from(document.querySelectorAll('.transit-planet-cb:checked')).map(cb => cb.value);
+      const selectedAspects = Array.from(document.querySelectorAll('.aspect-type-cb:checked')).map(cb => cb.value);
+
+      const payload = {
+        dob: document.getElementById('natal-date').value,
+        tob: document.getElementById('natal-time').value,
+        lat: parseFloat(document.getElementById('natal-lat').value),
+        lon: parseFloat(document.getElementById('natal-lon').value),
+        utcOffset: parseFloat(document.getElementById('natal-utc').value),
+        transitDate: document.getElementById('transit-date').value,
+        transitTime: document.getElementById('transit-time').value,
+        transitLat: parseFloat(document.getElementById('transit-lat').value),
+        transitLon: parseFloat(document.getElementById('transit-lon').value),
+        aspectHours: parseInt(document.getElementById('aspect-hours').value),
+        selectedPlanets: selectedPlanets,
+        selectedAspects: selectedAspects
+      };
+
+      if (!payload.dob || !payload.tob) {
+        setStatus('Please enter birth date and time.');
+        return;
+      }
+
+      setStatus('Computing chart...', true);
+
+      try {
+        const res = await fetch('/compute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          setStatus('Chart generated.', false);
+          renderChart(data.natal, data.transit, data.houses, data.aspects_48h, data.transit_aspects_48h);
+        } else {
+          setStatus(`Error: ${data.error || 'Unknown error'}`);
+        }
+      } catch (e) {
+        setStatus(`Network error: ${e.message}`);
+      }
+    }
+
+    function formatPlanet(key, info, isTransit = false, aspects = null, alignRight = false) {
+      let suffix = '';
+      let cssClass = isTransit ? 'transit-planet' : 'natal-planet';
+      let extra = [];
+
+      if (info.retrograde) {
+        extra.push('R');
+        cssClass += ' retro';
+      }
+      if (info.combust) {
+        extra.push('C');
+        if (!info.retrograde) cssClass += ' combust';
+        else cssClass += ' combust';
+      }
+
+      if (key === 'As') cssClass += ' is-asc';
+      if (key === 'For') cssClass += ' is-fortuna';
+      if (key === 'Mo' && isTransit) cssClass += ' is-moon';
+
+      let label = key;
+      if (extra.length > 0) label += `(${extra.join('')})`;
+      label += ` ${info.deg_min}`;
+
+      let aspectLines = '';
+      let tooltipText = '';
+
+      if (isTransit && aspects) {
+        const planetAspects = aspects.filter(a => a.transit_planet === key);
+        if (planetAspects.length > 0) {
+          tooltipText = `Upcoming Aspects for Transit ${key}:\n` + planetAspects.map(a => {
+            const dt = new Date(a.time).toLocaleString(undefined, {
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            return `• ${a.aspect_name} to Natal ${a.natal_planet} on ${dt}`;
+          }).join('\n');
+
+          // Render up to 2 aspect lines directly in the cell
+          aspectLines = planetAspects.slice(0, 2).map(a => {
+            const dt = new Date(a.time).toLocaleString(undefined, {
+              month: 'short', day: 'numeric'
+            });
+            const margin = alignRight ? 'margin-right: 4px;' : 'margin-left: 4px;';
+            return `<div class="transit-aspect-line" style="font-size: 8px; color: var(--text-dim); opacity: 0.8; line-height: 1.1; ${margin} white-space: nowrap;">↳ ${a.natal_planet} ${a.aspect_name.slice(0,4)} ${dt}</div>`;
+          }).join('');
+          
+          if (planetAspects.length > 2) {
+            const margin = alignRight ? 'margin-right: 4px;' : 'margin-left: 4px;';
+            aspectLines += `<div style="font-size: 7px; color: var(--accent); ${margin} opacity: 0.7; white-space: nowrap;">+ ${planetAspects.length - 2} more</div>`;
+          }
+        }
+      }
+
+      const mainDiv = `<div class="${cssClass}">${label}</div>`;
+      if (aspectLines) {
+        const alignment = alignRight ? 'align-items: flex-end; text-align: right;' : 'align-items: flex-start; text-align: left;';
+        return `<div style="display: flex; flex-direction: column; ${alignment} width: 100%;" title="${tooltipText}">${mainDiv}${aspectLines}</div>`;
+      }
+      return mainDiv;
+    }
+
+    function groupBySign(positions) {
+      const groups = {};
+      for (let i = 0; i < 12; i++) groups[i] = [];
+
+      for (const [key, info] of Object.entries(positions)) {
+        const si = info.sign_index;
+        groups[si].push({ key, ...info });
+      }
+      return groups;
+    }
+
+    /**
+     * Sort direction follows the zodiac flow (clockwise in South Indian chart):
+     *  - Top row (L→R) & Right column (T→B): ascending (lowest degree at top)
+     *  - Left column (B→T) & Bottom row (R→L): descending (highest degree at top)
+     *    i.e. "increasing degree towards top"
+     *
+     * Grid indices:
+     *   0  1  2  3      (top row)
+     *   4  -  -  7      (left / right)
+     *   8  -  - 11      (left / right)
+     *  12 13 14 15      (bottom row)
+     */
+    const DESC_CELLS = new Set([4, 8, 12, 13, 14]); // left col (excl top corner) + bottom row (excl right corner)
+
+    function sortPlanets(planets, gridIndex) {
+      const copy = [...planets];
+      if (DESC_CELLS.has(gridIndex)) {
+        // Descending — highest degree at top (degrees increase towards top)
+        copy.sort((a, b) => b.deg - a.deg);
+      } else {
+        // Ascending — lowest degree at top
+        copy.sort((a, b) => a.deg - b.deg);
+      }
+      return copy;
+    }
+
+
+
+    function escapeAttr(value) {
+      return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatOrb(orb) {
+      return `${Number(orb || 0).toFixed(2)}°`;
+    }
+
+    function formatTransitAspectDate(a) {
+      if (a.is_current) return a.timing || 'Current within 3°';
+      return new Date(a.time).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function transitAspectTooltip(signIdx, transitBySign, transitAspects) {
+      if (!transitAspects || transitAspects.length === 0) return 'No transit-to-transit aspects';
+      const planetsInSign = new Set((transitBySign[signIdx] || []).map(p => p.key));
+      const lines = transitAspects
+        .filter(a => planetsInSign.has(a.transit_planet) || planetsInSign.has(a.other_transit_planet))
+        .map(a => `${a.transit_planet} ${a.aspect_name} (${a.aspect_deg}°) ${a.other_transit_planet} | ${formatTransitAspectDate(a)} | orb ${formatOrb(a.orb)}`);
+      return lines.length ? lines.join('\n') : 'No transit-to-transit aspects in this sign';
+    }
+
+    function escapeAttr(value) {
+      return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatOrb(orb) {
+      return `${Number(orb || 0).toFixed(2)}°`;
+    }
+
+    function formatTransitAspectDate(a) {
+      if (a.is_current) return a.timing || 'Current within 3°';
+      return new Date(a.time).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function transitAspectTooltip(signIdx, transitBySign, transitAspects) {
+      if (!transitAspects || transitAspects.length === 0) return 'No transit-to-transit aspects';
+      const planetsInSign = new Set((transitBySign[signIdx] || []).map(p => p.key));
+      const lines = transitAspects
+        .filter(a => planetsInSign.has(a.transit_planet) || planetsInSign.has(a.other_transit_planet))
+        .map(a => `${a.transit_planet} ${a.aspect_name} (${a.aspect_deg}°) ${a.other_transit_planet} | ${formatTransitAspectDate(a)} | orb ${formatOrb(a.orb)}`);
+      return lines.length ? lines.join('\n') : 'No transit-to-transit aspects in this sign';
+    }
+
+    function renderTransitOnlyGrid(transitBySign, transitAspects) {
+      if (!transitBySign) return '';
+
+      let transitOnlyCells = '';
+      for (let i = 0; i < 16; i++) {
+        const signIdx = SI_LAYOUT[i];
+        if (signIdx === -1) {
+          transitOnlyCells += `<div class="si-cell center-cell"></div>`;
+          continue;
+        }
+
+        let cellContent = '';
+        if (transitBySign[signIdx]) {
+          const sorted = sortPlanets(transitBySign[signIdx], i);
+          for (const p of sorted) {
+            const planetAspects = (transitAspects || []).filter(a =>
+              a.transit_planet === p.key || a.other_transit_planet === p.key
+            );
+            const aspectText = planetAspects.slice(0, 2).map(a => {
+              const other = a.transit_planet === p.key ? a.other_transit_planet : a.transit_planet;
+              return `<div class="transit-aspect-line">to ${other} ${a.aspect_name.slice(0,4)} ${formatOrb(a.orb)}</div>`;
+            }).join('');
+            cellContent += `${formatPlanet(p.key, p, true)}${aspectText}`;
+          }
+        }
+
+        let cssClass = 'si-cell';
+        if ([2, 3, 4, 5].includes(signIdx)) {
+          cssClass += ' align-right';
+        }
+        if ([4, 8, 12, 13, 14].includes(i)) {
+          cssClass += ' align-bottom';
+        }
+
+        const title = escapeAttr(transitAspectTooltip(signIdx, transitBySign, transitAspects));
+        transitOnlyCells += `<div class="${cssClass}" title="${title}">${cellContent}</div>`;
+      }
+
+      return `
+        <div class="planet-table-wrap">
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-title">Transit Only: Transit -> Transit</div>
+            <div class="transit-only-grid-wrap">
+              <div class="transit-only-grid">
+                <div class="si-chart">
+                  ${transitOnlyCells}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTransitAspectTable(transitAspects) {
+      if (!transitAspects || transitAspects.length === 0) return '';
+
+      return `
+        <div class="planet-table-wrap">
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-title">Exact Aspects: Transit -> Transit</div>
+            <table class="planet-table">
+              <thead>
+                <tr><th>Time</th><th>Transit</th><th>Aspect</th><th>Transit</th><th>Orb</th><th>Note</th></tr>
+              </thead>
+              <tbody>
+                ${transitAspects.map(a => `<tr>
+                  <td>${formatTransitAspectDate(a)}</td>
+                  <td style="color: var(--transit-color); font-weight: 600;">${a.transit_planet}</td>
+                  <td>${a.aspect_name} (${a.aspect_deg}°)</td>
+                  <td style="color: var(--transit-color); font-weight: 600;">${a.other_transit_planet}</td>
+                  <td>${formatOrb(a.orb)}</td>
+                  <td>${a.timing || ''}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderChart(natal, transit, houses, aspects, transitAspects) {
+      const output = document.getElementById('chart-output');
+
+      // Group planets by sign
+      const natalBySign = groupBySign(natal);
+      const transitBySign = Object.keys(transit).length > 0 ? groupBySign(transit) : null;
+
+      // Determine which house each sign belongs to (based on ascendant)
+      let houseForSign = {};
+      if (houses && houses.length > 0) {
+        // House 1 sign = Ascendant sign
+        for (let h = 0; h < houses.length; h++) {
+          houseForSign[houses[h].sign_index] = h; // sign_index -> house_index (0-based)
+        }
+      }
+
+      // Build outer chart HTML (transit)
+      let outerCells = '';
+      for (let i = 0; i < 16; i++) {
+        const signIdx = SI_LAYOUT[i];
+        if (signIdx === -1) {
+          outerCells += `<div class="si-cell center-cell"></div>`;
+          continue;
+        }
+
+        let cellContent = '';
+
+        // Transit planets in this sign — sorted by degree
+        if (transitBySign && transitBySign[signIdx]) {
+          const sorted = sortPlanets(transitBySign[signIdx], i);
+          const alignRight = [3, 7, 11, 15].includes(i);
+          for (const p of sorted) {
+            cellContent += formatPlanet(p.key, p, true, aspects, alignRight);
+          }
+        }
+
+        let cssClass = 'si-cell';
+        if ([2, 3, 4, 5].includes(signIdx)) {
+          cssClass += ' align-right';
+        }
+        if ([4, 8, 12, 13, 14].includes(i)) {
+          cssClass += ' align-bottom';
+        }
+
+        outerCells += `<div class="${cssClass}" title="${SIGN_FULL[signIdx]}">${cellContent}</div>`;
+      }
+
+      // Build inner chart HTML (natal)
+      let innerCells = '';
+      for (let i = 0; i < 16; i++) {
+        const signIdx = SI_LAYOUT[i];
+        if (signIdx === -1) {
+          // Center cell
+          innerCells += `<div class="si-inner-cell center-cell"></div>`;
+          continue;
+        }
+
+        let cellContent = '';
+        let itemsToSort = [];
+
+        // Sign + house label
+        const hIdx = houseForSign[signIdx];
+        if (hIdx !== undefined) {
+          const h = houses[hIdx];
+          itemsToSort.push({
+            type: 'house',
+            deg: h.longitude % 30, // Get degree in sign
+            html: `<div class="inner-sign-label">${ROMAN[hIdx]} ${h.deg_min}</div>`
+          });
+        }
+
+        // Natal planets in this sign
+        if (natalBySign[signIdx]) {
+          for (const p of natalBySign[signIdx]) {
+            itemsToSort.push({
+              type: 'planet',
+              deg: p.deg,
+              html: formatPlanet(p.key, p, false)
+            });
+          }
+        }
+
+        // Sort both planets and house cusp by degree
+        const sortedItems = sortPlanets(itemsToSort, i);
+        for (const item of sortedItems) {
+          cellContent += item.html;
+        }
+
+        let cssClass = 'si-inner-cell';
+        if ([2, 3, 4, 5].includes(signIdx)) {
+          cssClass += ' align-right';
+        }
+        if ([4, 8, 12, 13, 14].includes(i)) {
+          cssClass += ' align-bottom';
+        }
+
+        innerCells += `<div class="${cssClass}" title="${SIGN_FULL[signIdx]}">${cellContent}</div>`;
+      }
+
+      // Planet tables
+      let natalTableRows = '';
+      const natalOrder = ['As','Su','Mo','Me','Ve','Ma','Ju','Sa','Ra','Ke','Ur','Ne','Pl'];
+      for (const key of natalOrder) {
+        if (!natal[key]) continue;
+        const p = natal[key];
+        let badges = '';
+        if (p.retrograde) badges += '<span class="badge-retro">R</span>';
+        if (p.combust) badges += '<span class="badge-combust">C</span>';
+        natalTableRows += `<tr>
+          <td>${key}${badges}</td>
+          <td>${p.sign}</td>
+          <td>${p.deg_min}°</td>
+          <td>${p.longitude.toFixed(2)}°</td>
+        </tr>`;
+      }
+
+      let transitTableRows = '';
+      if (transit && Object.keys(transit).length > 0) {
+        const transitOrder = ['As','Su','Mo','Me','Ve','Ma','Ju','Sa','Ra','Ke','Ur','Ne','Pl'];
+        for (const key of transitOrder) {
+          if (!transit[key]) continue;
+          const p = transit[key];
+          let badges = '';
+          if (p.retrograde) badges += '<span class="badge-retro">R</span>';
+          if (p.combust) badges += '<span class="badge-combust">C</span>';
+          transitTableRows += `<tr>
+            <td>${key}${badges}</td>
+            <td>${p.sign}</td>
+            <td>${p.deg_min}°</td>
+            <td>${p.longitude.toFixed(2)}°</td>
+          </tr>`;
+        }
+      }
+
+      output.innerHTML = `
+        <div class="fade-in">
+          <div class="chart-container">
+            <div class="chart-wrapper">
+              <div class="si-chart">
+                ${outerCells}
+              </div>
+              <div class="inner-chart-container">
+                <div class="si-inner-chart">
+                  ${innerCells}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          ${aspects && aspects.length > 0 ? `
+          <div class="planet-table-wrap">
+            <div class="card" style="margin-top: 20px;">
+              <div class="card-title">Exact Aspects: Transit → Natal</div>
+              <table class="planet-table">
+                <thead>
+                  <tr><th>Time (Local)</th><th>Transit Planet</th><th>Aspect</th><th>Natal Point</th></tr>
+                </thead>
+                <tbody>
+                  ${aspects.map(a => {
+                    const localTime = new Date(a.time).toLocaleString(undefined, {
+                       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    return `<tr>
+                      <td>${localTime}</td>
+                      <td style="color: var(--transit-color); font-weight: 600;">${a.transit_planet}</td>
+                      <td>${a.aspect_name} (${a.aspect_deg}°)</td>
+                      <td style="color: var(--natal-color); font-weight: 600;">${a.natal_planet}</td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          ` : ''}
+
+          ${renderTransitOnlyGrid(transitBySign, transitAspects)}
+          ${renderTransitAspectTable(transitAspects)}
+
+          <div class="planet-table-wrap">
+            <div class="planet-tables-grid">
+              <div class="card">
+                <div class="card-title">Natal Positions</div>
+                <table class="planet-table">
+                  <thead>
+                    <tr><th>Planet</th><th>Sign</th><th>Deg:Min</th><th>Longitude</th></tr>
+                  </thead>
+                  <tbody>${natalTableRows}</tbody>
+                </table>
+              </div>
+              ${transitTableRows ? `
+              <div class="card">
+                <div class="card-title">Transit Positions</div>
+                <table class="planet-table">
+                  <thead>
+                    <tr><th>Planet</th><th>Sign</th><th>Deg:Min</th><th>Longitude</th></tr>
+                  </thead>
+                  <tbody>${transitTableRows}</tbody>
+                </table>
+              </div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
