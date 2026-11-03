@@ -994,6 +994,9 @@
       </div> <!-- end chart-panel -->
     </div> <!-- end main-layout -->
 
+    <!-- FULL WIDTH BELOW COMPUTE & CHART -->
+    <div id="tables-output"></div>
+
   </div>
 
   <script>
@@ -1496,6 +1499,7 @@
 
     function renderChart(natal, transit, houses, aspects, transitAspects) {
       const output = document.getElementById('chart-output');
+      const tablesOutput = document.getElementById('tables-output');
 
       // Group planets by sign
       const natalBySign = groupBySign(natal);
@@ -1634,82 +1638,88 @@
               <div class="si-chart">
                 ${outerCells}
               </div>
-            <div class="inner-chart-container">
-              <div class="si-inner-chart">
-                ${innerCells}
-                <div class="center-adjust-controls">
-                  <button class="btn-now" type="button" onclick="adjustTransitTime(-1)" title="Decrease transit time">◀</button>
-                  <button class="btn-now" type="button" onclick="adjustTransitTime(1)" title="Increase transit time">▶</button>
+              <div class="inner-chart-container">
+                <div class="si-inner-chart">
+                  ${innerCells}
+                  <div class="center-adjust-controls">
+                    <button class="btn-now" type="button" onclick="adjustTransitTime(-1)" title="Decrease transit time">◀</button>
+                    <button class="btn-now" type="button" onclick="adjustTransitTime(1)" title="Increase transit time">▶</button>
+                  </div>
                 </div>
               </div>
-            </div>
-            </div>
-          </div>
-
-          ${aspects && aspects.length > 0 ? `
-          <div class="planet-table-wrap">
-            <div class="card" style="margin-top: 20px;">
-              <div class="card-title">Exact Aspects: Transit → Natal</div>
-              <div class="table-responsive">
-                <table class="planet-table">
-                  <thead>
-                    <tr><th>Time</th><th>Transit</th><th>Aspect</th><th>Natal</th><th>Orb</th><th>Interpretation</th><th>Note</th></tr>
-                  </thead>
-                  <tbody>
-                    ${aspects.map(a => {
-                      const localTime = new Date(a.time).toLocaleString(undefined, {
-                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                      });
-                      const interpretation = a.interpretation ? escapeHtml(a.interpretation) : '';
-                      return `<tr>
-                        <td>${localTime}</td>
-                        <td style="color: var(--transit-color); font-weight: 600;">${a.transit_planet}</td>
-                        <td>${a.aspect_name} (${a.aspect_deg}°)</td>
-                        <td style="color: var(--natal-color); font-weight: 600;">${a.natal_planet}</td>
-                        <td>${formatOrb(a.orb)}</td>
-                        <td class="interpretation-cell">${interpretation}</td>
-                        <td style="color: var(--text-dim); font-size: 11px;">${a.timing || ''}</td>
-                      </tr>`;
-                    }).join('')}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          ` : ''}
-
-          ${renderTransitOnlyGrid(transitBySign, transitAspects)}
-          ${renderTransitAspectTable(transitAspects)}
-
-          <div class="planet-table-wrap">
-            <div class="planet-tables-grid">
-              <div class="card">
-                <div class="card-title">Natal Positions</div>
-                <div class="table-responsive">
-                  <table class="planet-table">
-                    <thead>
-                      <tr><th>Planet</th><th>Sign</th><th>Deg:Min</th><th>Longitude</th></tr>
-                    </thead>
-                    <tbody>${natalTableRows}</tbody>
-                  </table>
-                </div>
-              </div>
-              ${transitTableRows ? `
-              <div class="card">
-                <div class="card-title">Transit Positions</div>
-                <div class="table-responsive">
-                  <table class="planet-table">
-                    <thead>
-                      <tr><th>Planet</th><th>Sign</th><th>Deg:Min</th><th>Longitude</th></tr>
-                    </thead>
-                    <tbody>${transitTableRows}</tbody>
-                  </table>
-                </div>
-              </div>` : ''}
             </div>
           </div>
         </div>
       `;
+
+      if (tablesOutput) {
+        tablesOutput.innerHTML = `
+          <div class="fade-in">
+            ${aspects && aspects.length > 0 ? `
+            <div class="planet-table-wrap">
+              <div class="card" style="margin-top: 24px;">
+                <div class="card-title">Exact & Current Aspects: Transit → Natal</div>
+                <div class="table-responsive">
+                  <table class="planet-table">
+                    <thead>
+                      <tr><th>Time</th><th>Transit</th><th>Aspect</th><th>Natal</th><th>Orb</th><th>Interpretation</th><th>Note</th></tr>
+                    </thead>
+                    <tbody>
+                      ${aspects.map(a => {
+                        const localTime = new Date(a.time).toLocaleString(undefined, {
+                           month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        });
+                        const interpretation = a.interpretation ? escapeHtml(a.interpretation) : '';
+                        return `<tr>
+                          <td>${localTime}</td>
+                          <td style="color: var(--transit-color); font-weight: 600;">${a.transit_planet}</td>
+                          <td>${a.aspect_name} (${a.aspect_deg}°)</td>
+                          <td style="color: var(--natal-color); font-weight: 600;">${a.natal_planet}</td>
+                          <td>${formatOrb(a.orb)}</td>
+                          <td class="interpretation-cell">${interpretation}</td>
+                          <td style="color: var(--text-dim); font-size: 11px;">${a.timing || ''}</td>
+                        </tr>`;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            ` : ''}
+
+            ${renderTransitOnlyGrid(transitBySign, transitAspects)}
+            ${renderTransitAspectTable(transitAspects)}
+
+            <div class="planet-table-wrap">
+              <div class="planet-tables-grid">
+                <div class="card">
+                  <div class="card-title">Natal Positions</div>
+                  <div class="table-responsive">
+                    <table class="planet-table">
+                      <thead>
+                        <tr><th>Planet</th><th>Sign</th><th>Deg:Min</th><th>Longitude</th></tr>
+                      </thead>
+                      <tbody>${natalTableRows}</tbody>
+                    </table>
+                  </div>
+                </div>
+                ${transitTableRows ? `
+                <div class="card">
+                  <div class="card-title">Transit Positions</div>
+                  <div class="table-responsive">
+                    <table class="planet-table">
+                      <thead>
+                        <tr><th>Planet</th><th>Sign</th><th>Deg:Min</th><th>Longitude</th></tr>
+                      </thead>
+                      <tbody>${transitTableRows}</tbody>
+                    </table>
+                  </div>
+                </div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
     }
   </script>
 </body>
