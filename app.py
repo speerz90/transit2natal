@@ -309,6 +309,42 @@ def compute_transit_aspects(dt_transit_start, transit_lat, transit_lon, hours=48
                 exact_aspects[min(asp_deg, 360 - asp_deg)] = asp_name
 
     found_aspects = []
+    previous_keys = set()
+
+    # --- Previous aspects detection (similar to compute_aspects) ---
+    # Compare positions one hour before the start to the start time to catch aspects that have just passed.
+    prev_pos, _ = get_positions(dt_transit_start - timedelta(hours=1), transit_lat, transit_lon)
+    current_pos, _ = get_positions(dt_transit_start, transit_lat, transit_lon)
+    for i, tp in enumerate(selected_planets):
+        if tp not in prev_pos or tp not in current_pos:
+            continue
+        for other in selected_planets[i + 1:]:
+            if other not in prev_pos or other not in current_pos:
+                continue
+            sep_prev = angular_separation(prev_pos[tp]["longitude"], prev_pos[other]["longitude"])
+            sep_now = angular_separation(current_pos[tp]["longitude"], current_pos[other]["longitude"])
+            for aspect_deg, aspect_name in exact_aspects.items():
+                if is_excluded_transit_aspect(tp, other, aspect_deg):
+                    continue
+                orb_now = abs(sep_now - aspect_deg)
+                orb_prev = abs(sep_prev - aspect_deg)
+                if 0 < orb_now <= current_orb and orb_now > orb_prev:
+                    # Record as previous aspect (just passed exact)
+                    display_tp, display_other = order_transit_aspect_pair(tp, other)
+                    found_aspects.append({
+                        "time": dt_transit_start.isoformat() + "Z",
+                        "transit_planet": display_tp,
+                        "other_transit_planet": display_other,
+                        "aspect_deg": aspect_deg,
+                        "aspect_name": aspect_name,
+                        "orb": round(orb_now, 2),
+                        "timing": "Previous within 3°",
+                        "is_previous": True,
+                        # Interpretation for transit-transit may not exist; leave empty
+                        "interpretation": ""
+                    })
+                    previous_keys.add((tp, other, aspect_deg))
+    
     seen = set()
 
     current_pos, _ = get_positions(dt_transit_start, transit_lat, transit_lon)
@@ -323,6 +359,8 @@ def compute_transit_aspects(dt_transit_start, transit_lat, transit_lon, hours=48
             for aspect_deg, aspect_name in exact_aspects.items():
                 if is_excluded_transit_aspect(tp, other, aspect_deg):
                     continue
+                if (tp, other, aspect_deg) in previous_keys:
+                    continue  # already recorded as previous
                 orb = abs(sep_now - aspect_deg)
                 if orb <= current_orb:
                     dedupe_key = ("current", tp, other, aspect_deg)
@@ -408,7 +446,7 @@ def compute_transit_aspects(dt_transit_start, transit_lat, transit_lon, hours=48
                                 "separation": aspect_deg
                             })
 
-    found_aspects.sort(key=lambda x: (not x.get("is_current", False), x["time"], x["transit_planet"], x["other_transit_planet"]))
+    found_aspects.sort(key=lambda x: (not x.get("is_previous", False), not x.get("is_current", False), x["time"], x["transit_planet"], x["other_transit_planet"]))
     return found_aspects
 
 
@@ -554,8 +592,10 @@ def compute():
                 hours=aspect_hours, selected_planets=selected_planets,
                 selected_aspects=data.get('selectedAspects', None)
             )
-        except Exception:
-            return jsonify({"error": "Invalid transit date/time"}), 400
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": f"Invalid transit date/time: {str(e)}"}), 400
 
     return jsonify({
         "natal": natal_pos,

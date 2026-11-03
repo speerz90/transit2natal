@@ -372,10 +372,11 @@
     /* Transit planets in outer cells */
     .transit-planet {
       font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(9.5px, 1.2vw, 13px);
+      font-size: clamp(8.5px, 1.05vw, 11.5px);
+      letter-spacing: -0.02em;
       font-weight: 500;
       color: var(--text-bright);
-      line-height: 1.45;
+      line-height: 1.35;
       white-space: nowrap;
     }
 
@@ -430,7 +431,7 @@
 
     .si-inner-cell {
       border: 1px solid var(--border);
-      padding: 2px 3px;
+      padding: 2px 2px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -455,7 +456,8 @@
     /* Sign number label in inner cells */
     .inner-sign-label {
       font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(7.5px, 0.9vw, 9.5px);
+      font-size: clamp(7px, 0.78vw, 9px);
+      letter-spacing: -0.02em;
       color: var(--sign-header);
       font-weight: 600;
       white-space: nowrap;
@@ -473,10 +475,11 @@
     /* Natal planets in inner cells */
     .natal-planet {
       font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(8.5px, 1vw, 11px);
+      font-size: clamp(7.5px, 0.82vw, 9.8px);
+      letter-spacing: -0.03em;
       font-weight: 500;
       color: var(--natal-color);
-      line-height: 1.45;
+      line-height: 1.35;
       white-space: nowrap;
     }
 
@@ -1370,6 +1373,7 @@
     }
 
     function formatTransitAspectDate(a) {
+      if (a.is_previous) return a.timing || 'Previous within 3°';
       if (a.is_current) return a.timing || 'Current within 3°';
       return new Date(a.time).toLocaleString(undefined, {
         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -1385,42 +1389,24 @@
       return lines.length ? lines.join('\n') : 'No transit-to-transit aspects in this sign';
     }
 
-    function escapeAttr(value) {
-      return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function formatOrb(orb) {
-      return `${Number(orb || 0).toFixed(2)}°`;
-    }
-
-    function formatTransitAspectDate(a) {
-      if (a.is_current) return a.timing || 'Current within 3°';
-      return new Date(a.time).toLocaleString(undefined, {
-        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-    }
-
-    function transitAspectTooltip(signIdx, transitBySign, transitAspects) {
-      if (!transitAspects || transitAspects.length === 0) return 'No transit-to-transit aspects';
-      const planetsInSign = new Set((transitBySign[signIdx] || []).map(p => p.key));
-      const lines = transitAspects
-        .filter(a => planetsInSign.has(a.transit_planet) || planetsInSign.has(a.other_transit_planet))
-        .map(a => `${a.transit_planet} ${a.aspect_name} (${a.aspect_deg}°) ${a.other_transit_planet} | ${formatTransitAspectDate(a)} | orb ${formatOrb(a.orb)}`);
-      return lines.length ? lines.join('\n') : 'No transit-to-transit aspects in this sign';
-    }
-
-    function renderTransitOnlyGrid(transitBySign, transitAspects) {
+        function renderTransitOnlyGrid(transitBySign, transitAspects) {
       if (!transitBySign) return '';
 
       let transitOnlyCells = '';
       for (let i = 0; i < 16; i++) {
         const signIdx = SI_LAYOUT[i];
         if (signIdx === -1) {
-          transitOnlyCells += `<div class="si-cell center-cell"></div>`;
+          if (i === 5) {
+            transitOnlyCells += `<div class="si-cell center-cell" style="display:flex;align-items:center;justify-content:center;"><div class="center-label" style="font-size:11px;opacity:0.8;"><span class="transit-label">Transit</span></div></div>`;
+          } else if (i === 6) {
+            transitOnlyCells += `<div class="si-cell center-cell" style="display:flex;align-items:center;justify-content:center;"><div class="center-label" style="font-size:11px;opacity:0.8;"><span class="transit-label">Chart</span></div></div>`;
+          } else {
+            transitOnlyCells += `<div class="si-cell center-cell"></div>`;
+          }
           continue;
         }
 
-        let cellContent = '';
+        let cellContent = `<div class="inner-sign-label" style="font-size: 8px; opacity: 0.65; margin-bottom: 2px;">${SIGN_ABBR[signIdx]}</div>`;
         if (transitBySign[signIdx]) {
           const sorted = sortPlanets(transitBySign[signIdx], i);
           for (const p of sorted) {
@@ -1450,7 +1436,7 @@
       return `
         <div class="planet-table-wrap">
           <div class="card" style="margin-top: 20px;">
-            <div class="card-title">Transit Only: Transit -> Transit</div>
+            <div class="card-title">Transit Only Chart</div>
             <div class="transit-only-grid-wrap">
               <div class="transit-only-grid">
                 <div class="si-chart">
@@ -1469,20 +1455,25 @@
       return `
         <div class="planet-table-wrap">
           <div class="card" style="margin-top: 20px;">
-            <div class="card-title">Exact Aspects: Transit -> Transit</div>
+            <div class="card-title">Exact & Current Aspects: Transit → Transit</div>
             <table class="planet-table">
               <thead>
-                <tr><th>Time</th><th>Transit</th><th>Aspect</th><th>Transit</th><th>Orb</th><th>Note</th></tr>
+                <tr><th>Time (Local)</th><th>Transit</th><th>Aspect</th><th>Transit</th><th>Orb</th><th>Note</th></tr>
               </thead>
               <tbody>
-                ${transitAspects.map(a => `<tr>
-                  <td>${formatTransitAspectDate(a)}</td>
-                  <td style="color: var(--transit-color); font-weight: 600;">${a.transit_planet}</td>
-                  <td>${a.aspect_name} (${a.aspect_deg}°)</td>
-                  <td style="color: var(--transit-color); font-weight: 600;">${a.other_transit_planet}</td>
-                  <td>${formatOrb(a.orb)}</td>
-                  <td>${a.timing || ''}</td>
-                </tr>`).join('')}
+                ${transitAspects.map(a => {
+                  const localTime = new Date(a.time).toLocaleString(undefined, {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                  });
+                  return `<tr>
+                    <td>${localTime}</td>
+                    <td style="color: var(--transit-color); font-weight: 600;">${a.transit_planet}</td>
+                    <td>${a.aspect_name} (${a.aspect_deg}°)</td>
+                    <td style="color: var(--transit-color); font-weight: 600;">${a.other_transit_planet}</td>
+                    <td>${formatOrb(a.orb)}</td>
+                    <td>${a.timing || ''}</td>
+                  </tr>`;
+                }).join('')}
               </tbody>
             </table>
           </div>
