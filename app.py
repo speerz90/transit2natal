@@ -117,7 +117,9 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
             for aspect_deg, aspect_name in exact_aspects.items():
                 orb_now = abs(sep_now - aspect_deg)
                 orb_next = abs(sep_next - aspect_deg)
-                if 0 < orb_now <= current_orb and orb_next >= orb_now:
+                if 0 <= orb_now <= current_orb:
+                    is_prev = orb_next >= orb_now
+                    timing_str = f"Previous within {current_orb:.0f}°" if is_prev else f"Current within {current_orb:.0f}°"
                     found_aspects.append({
                         "time": dt_transit_start.isoformat() + "Z",
                         "transit_planet": tp,
@@ -125,8 +127,9 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
                         "aspect_deg": aspect_deg,
                         "aspect_name": aspect_name,
                         "orb": round(orb_now, 2),
-                        "timing": "Previous within 3°",
-                        "is_previous": True,
+                        "timing": timing_str,
+                        "is_previous": is_prev,
+                        "is_current": not is_prev,
                         "interpretation": get_transit_natal_interpretation(tp, np)
                     })
 
@@ -178,16 +181,17 @@ def compute_aspects(dt_transit_start, transit_lat, transit_lon, natal_pos, hours
                                 "interpretation": get_transit_natal_interpretation(tp, np)
                             })
 
-    found_aspects.sort(key=lambda x: (not x.get("is_previous", False), x["time"], x["transit_planet"], x["natal_planet"]))
+    def aspect_sort_key(x):
+        if x.get("is_current"):
+            order = 0
+        elif x.get("is_previous"):
+            order = 1
+        else:
+            order = 2
+        return (order, x["orb"] if order < 2 else x["time"], x["transit_planet"], x["natal_planet"])
+
+    found_aspects.sort(key=aspect_sort_key)
     return found_aspects
-
-
-def angular_separation(lon_a, lon_b):
-    return abs((lon_a - lon_b + 180) % 360 - 180)
-
-
-def normalize_delta(delta):
-    return (delta + 180) % 360 - 180
 
 
 def angular_separation(lon_a, lon_b):
